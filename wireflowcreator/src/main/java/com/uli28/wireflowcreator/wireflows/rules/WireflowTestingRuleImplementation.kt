@@ -1,11 +1,12 @@
-package com.uli28.wireflowcreator.rules
+package com.uli28.wireflowcreator.wireflows.rules
 
-import com.uli28.wireflowcreator.extensions.ScreenshotRecorder
+
 import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
 import com.uli28.wireflowcreator.wireflows.entities.TestedRequirement
 import com.uli28.wireflowcreator.wireflows.entities.Wireflow
+import com.uli28.wireflowcreator.wireflows.extensions.ScreenshotRecorder
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.lang.Thread.sleep

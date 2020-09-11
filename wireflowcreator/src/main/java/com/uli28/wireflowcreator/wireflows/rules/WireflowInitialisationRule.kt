@@ -1,6 +1,8 @@
-package com.uli28.wireflowcreator.rules
+package com.uli28.wireflowcreator.wireflows.rules
 
+import android.os.Build
 import android.os.Environment.DIRECTORY_PICTURES
+import androidx.annotation.RequiresApi
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.google.gson.GsonBuilder
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowPresentation
@@ -21,6 +23,7 @@ class WireflowInitialisationRule : TestRule {
         private val statement: Statement,
         private val description: Description
     ) : Statement() {
+        @RequiresApi(Build.VERSION_CODES.O)
         override fun evaluate() {
             val name = description
                 .annotations
@@ -40,6 +43,7 @@ class WireflowInitialisationRule : TestRule {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun initWireflow(name: String) {
         flowPresentation = FlowPresentation(name, LocalDate.now().toString(), "myApp")
         println(flowPresentation)

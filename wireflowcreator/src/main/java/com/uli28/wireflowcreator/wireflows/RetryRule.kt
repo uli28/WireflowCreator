@@ -1,6 +1,5 @@
-package com.uli28.wireflowcreator
+package com.uli28.wireflowcreator.wireflows
 
-import com.codingwithmitch.espressouitestexamples.ui.main.wireflows.RetryOnFailure
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement

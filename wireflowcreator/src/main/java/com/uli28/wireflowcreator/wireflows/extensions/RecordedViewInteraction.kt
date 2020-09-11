@@ -1,10 +1,10 @@
-package com.uli28.wireflowcreator.extensions
+package com.uli28.wireflowcreator.wireflows.extensions
 
 import android.view.View
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewAssertion
 import androidx.test.espresso.ViewInteraction
-import com.uli28.wireflowcreator.rules.WireflowInitialisationRule
+import com.uli28.wireflowcreator.wireflows.rules.WireflowInitialisationRule
 import com.uli28.wireflowcreator.wireflows.entities.*
 import org.junit.runner.Description
 

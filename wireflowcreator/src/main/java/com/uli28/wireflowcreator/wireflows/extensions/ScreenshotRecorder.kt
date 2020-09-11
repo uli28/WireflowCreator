@@ -1,4 +1,4 @@
-package com.uli28.wireflowcreator.extensions
+package com.uli28.wireflowcreator.wireflows.extensions
 
 import android.graphics.Bitmap
 import android.os.Environment.DIRECTORY_PICTURES

@@ -36,5 +36,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // Screenshots
+    implementation 'androidx.test:runner:1.3.0'
+    // Espresso
+    implementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

@@ -1,4 +1,4 @@
-package com.uli28.wireflowcreator.rules
+package com.uli28.wireflowcreator.wireflows.rules
 
 import android.graphics.Bitmap
 import android.os.Environment.DIRECTORY_PICTURES

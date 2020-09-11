@@ -1,8 +1,9 @@
-package com.uli28.wireflowcreator.rules
+package com.uli28.wireflowcreator.wireflows.rules
 
 import android.view.View
-import com.uli28.wireflowcreator.extensions.RecordedViewInteraction
-import com.uli28.wireflowcreator.extensions.WireflowRecorder
+import com.uli28.wireflowcreator.wireflows.extensions.RecordedViewInteraction
+import com.uli28.wireflowcreator.wireflows.extensions.WireflowRecorder
+
 import org.hamcrest.Matcher
 import org.junit.rules.TestRule
 import org.junit.runner.Description

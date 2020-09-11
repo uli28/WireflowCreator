@@ -1,8 +1,8 @@
-package com.uli28.wireflowcreator.extensions
+package com.uli28.wireflowcreator.wireflows.extensions
 
 import android.view.View
 import androidx.test.espresso.Espresso
-import com.uli28.wireflowcreator.rules.WireflowInitialisationRule
+import com.uli28.wireflowcreator.wireflows.rules.WireflowInitialisationRule
 import org.hamcrest.Matcher
 import org.junit.runner.Description
 

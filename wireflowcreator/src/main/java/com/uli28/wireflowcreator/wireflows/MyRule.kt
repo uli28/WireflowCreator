@@ -1,4 +1,4 @@
-package com.uli28.wireflowcreator
+package com.uli28.wireflowcreator.wireflows
 
 import org.junit.rules.TestRule
 import org.junit.runner.Description
