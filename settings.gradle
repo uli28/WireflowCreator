@@ -1,0 +1,3 @@
+rootProject.name='Wireflow Creator'
+include ':app'
+include ':wireflowcreator'
