@@ -1,7 +1,7 @@
-package com.uli28.wireflowcreator
+package com.uli28.wireflowcreator.wireflows
 
-import com.codingwithmitch.espressouitestexamples.ui.main.wireflows.rules.WireflowInitialisationRule
-import com.codingwithmitch.espressouitestexamples.ui.main.wireflows.rules.WireflowTestingRule
+import com.uli28.wireflowcreator.wireflows.rules.WireflowInitialisationRule
+import com.uli28.wireflowcreator.wireflows.rules.WireflowTestingRule
 import org.junit.ClassRule
 import org.junit.Rule
 
