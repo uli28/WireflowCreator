@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Wireflow Creator</string>
+    <string name="text_mainactivity">MainActivity</string>
+    <string name="text_back">Back</string>
+    <string name="text_secondactivity">SecondActivity</string>
+    <string name="text_next">Next</string>
 </resources>
