@@ -14,9 +14,8 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.io.File
 import java.lang.reflect.Field
-import java.time.LocalDate
 
-class WireflowInitialisationRule(var context: Context?) : TestRule {
+class WireflowInitialisationRule(private var context: Context?) : TestRule {
     var flowPresentation: FlowPresentation? = null
 
     override fun apply(base: Statement, description: Description) =
@@ -32,10 +31,10 @@ class WireflowInitialisationRule(var context: Context?) : TestRule {
                 .annotations
                 .filterIsInstance<CreateFlowRepresentation>()
                 .firstOrNull()
-                ?.name ?: description.methodName + LocalDate.now().toString();
+                ?.name ?: ""
 
             // Do something before all tests.
-            initWireflow(name)
+            initWireflow(name, description)
             try {
                 // Execute the test.
                 statement.evaluate()
@@ -47,7 +46,7 @@ class WireflowInitialisationRule(var context: Context?) : TestRule {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun initWireflow(name: String) {
+    private fun initWireflow(name: String, description: Description) {
         val buildTimestamp = getBuildConfigValue(context!!, "BUILD_TIMESTAMP").toString()
         val flavor = getBuildConfigValue(context!!, "FLAVOR").toString()
         val buildType = getBuildConfigValue(context!!, "BUILD_TYPE").toString()
@@ -56,14 +55,16 @@ class WireflowInitialisationRule(var context: Context?) : TestRule {
             name,
             buildTimestamp,
             getApplicationName(flavor, buildType),
-            BuildConfig.VERSION_NAME
+            BuildConfig.VERSION_NAME,
+            description.displayName.substringAfterLast(".")
         )
         println(flowPresentation)
     }
 
     private fun getApplicationName(flavor: String, buildType: String): String {
         if (flavor.isEmpty() || buildType.isEmpty()) {
-            return getBuildConfigValue(context!!, "ULI_TEST").toString()
+            return getBuildConfigValue(context!!, "APPLICATION_ID")
+                .toString().substringAfterLast(".")
         }
         return flavor + buildType
     }
@@ -82,7 +83,7 @@ class WireflowInitialisationRule(var context: Context?) : TestRule {
             .writeText(json)
     }
 
-    fun getBuildConfigValue(
+    private fun getBuildConfigValue(
         context: Context,
         fieldName: String?
     ): Any? {

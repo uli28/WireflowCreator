@@ -9,9 +9,9 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-class WireflowTestingRule(var wireflowInitialisationRule: WireflowInitialisationRule) :
+class WireflowTestingRule(private var wireflowInitialisationRule: WireflowInitialisationRule) :
     TestRule {
-    var description: Description? = null
+    private var description: Description? = null
     override fun apply(base: Statement, description: Description) =
         createWireflowTestingRuleImplementation(base, description)
 

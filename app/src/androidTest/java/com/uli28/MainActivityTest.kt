@@ -20,7 +20,7 @@ import org.junit.*
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4ClassRunner::class)
-@CreateFlowRepresentation(name = "myFlow")
+@CreateFlowRepresentation(name = "myWireflowName")
 class MainActivityTest : WireflowCreator(wireflowInitialisationRule) {
 
     @get:Rule

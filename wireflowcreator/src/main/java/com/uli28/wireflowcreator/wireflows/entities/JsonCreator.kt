@@ -19,14 +19,14 @@ fun main() {
 @RequiresApi(Build.VERSION_CODES.O)
 fun createFlowPresentation(): FlowPresentation {
     val flowPresentation =
-        FlowPresentation("nyName", LocalDate.now().toString(),"myApp" , "")
+        FlowPresentation("nyName", LocalDate.now().toString(),"myApp" , "", "")
 
     val requirement =
         TestedRequirement()
     requirement.id = "JIRA-123"
     requirement.link ="https://www.google.at"
     val flow1 =
-        Wireflow()
+        Wireflow("","")
     flow1.testedRequirements = mutableListOf(requirement)
 
     val image =

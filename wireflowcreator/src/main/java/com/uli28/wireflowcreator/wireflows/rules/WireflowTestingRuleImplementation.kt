@@ -1,6 +1,8 @@
 package com.uli28.wireflowcreator.wireflows.rules
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
@@ -10,19 +12,22 @@ import com.uli28.wireflowcreator.wireflows.extensions.ScreenshotRecorder
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.lang.Thread.sleep
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class WireflowTestingRuleImplementation(
     private val statement: Statement,
     private val description: Description,
     private val flowPresentation: FlowPresentation?
 ) : Statement() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
         val testedRequirements = description
             .annotations
             .filterIsInstance<CreateWireflow>()
             .firstOrNull()
             ?.requirements
-        sleep(50)
+        sleep(100)
         flowPresentation?.flows =
             addFlowWithRequirements(description, testedRequirements, flowPresentation)
         // Do something before test.
@@ -38,23 +43,29 @@ class WireflowTestingRuleImplementation(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun addFlowWithRequirements(
     description: Description,
     requirements: Array<Requirement>?,
     flowPresentation: FlowPresentation?
 ): MutableMap<String, Wireflow> {
+
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+    val currentTimeStamp = LocalDateTime.now().format(formatter)
+    val currentMillis = System.currentTimeMillis()
+
     var flows = flowPresentation?.flows
 
     if (flows == null) {
         flows = mutableMapOf()
     }
 
-    val createdWireflow = Wireflow()
+    val createdWireflow = Wireflow(currentTimeStamp, description.methodName)
 
     addTestedRequirements(createdWireflow, requirements)
     addInitialScreenshot(createdWireflow)
 
-    flows[description.methodName + "_" + System.currentTimeMillis()] = createdWireflow
+    flows[description.methodName + "_" + currentMillis] = createdWireflow
     return flows
 }
 
