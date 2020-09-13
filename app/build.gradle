@@ -14,6 +14,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "BUILD_TIMESTAMP", "\"${new Date().format('yyyy-MM-dd:HH:mm:ss', TimeZone.getDefault()).toString()}\""
+        buildConfigField "String", "ULI_TEST", "\"app_test\""
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -26,6 +28,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            buildConfigField "String", "enableWireflowCreation", System.getenv("ENABLE_WIREFLOW_CREATION").toString()
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

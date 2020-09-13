@@ -19,7 +19,7 @@ fun main() {
 @RequiresApi(Build.VERSION_CODES.O)
 fun createFlowPresentation(): FlowPresentation {
     val flowPresentation =
-        FlowPresentation("nyName", LocalDate.now().toString(),"myApp" )
+        FlowPresentation("nyName", LocalDate.now().toString(),"myApp" , "")
 
     val requirement =
         TestedRequirement()

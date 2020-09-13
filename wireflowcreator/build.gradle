@@ -16,6 +16,8 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
+        buildConfigField "String", "BUILD_TIMESTAMP", "\"${new Date().format('yyyy-MM-dd:HH:mm:ss', TimeZone.getDefault()).toString()}\""
+        buildConfigField "String", "enableWireflowCreation", System.getenv("ENABLE_WIREFLOW_CREATION").toString()
     }
 
     buildTypes {
