@@ -1,2 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.uli28.wireflowcreator" />
+    package="com.uli28.wireflowcreator">
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

@@ -1,10 +1,14 @@
 package com.uli28.wireflowcreator.wireflows.extensions
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Environment.DIRECTORY_PICTURES
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.runner.screenshot.BasicScreenCaptureProcessor
 import androidx.test.runner.screenshot.Screenshot
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.storage.FirebaseStorage
 import com.uli28.wireflowcreator.wireflows.entities.ImageType
 import java.io.File
 import java.io.FileNotFoundException
@@ -58,6 +62,10 @@ class ScreenshotRecorder {
             outFile = FileOutputStream(file)
             val bitmap = capture.bitmap
             bitmap.compress(Bitmap.CompressFormat.JPEG, 26, outFile)
+            uploadImage(
+                getPathName() + File.separator + capture.name + "." + capture.format,
+                capture.name + "." + capture.format
+            )
             outFile.flush()
             outFile.close()
         } catch (e: FileNotFoundException) {
@@ -65,6 +73,43 @@ class ScreenshotRecorder {
         }
 
         return imageType
+    }
+
+
+    private fun uploadImage(filepath: String, filename: String) {
+        // Create a storage reference from our app
+        val storage = FirebaseStorage.getInstance()
+        val mAuth = FirebaseAuth.getInstance()
+        val user: FirebaseUser? = mAuth.currentUser
+        if (user != null) {
+            // do your stuff
+        } else {
+            signInAnonymously(mAuth)
+        }
+        val storageRef = storage.reference
+
+        var file = Uri.fromFile(File(filepath))
+        val riversRef = storageRef.child("images/${file.lastPathSegment}")
+        val uploadTask = riversRef.putFile(file)
+        uploadTask.addOnFailureListener {
+            // Handle unsuccessful uploads
+            println("didn't work")
+        }.addOnSuccessListener { taskSnapshot ->
+            // taskSnapshot.metadata contains file metadata such as size, content-type, etc.
+            // ...
+            println("worked")
+        }
+    }
+
+    private fun signInAnonymously(mAuth: FirebaseAuth) {
+        mAuth.signInAnonymously()
+            .addOnSuccessListener {
+                println("worked")
+            }
+            .addOnFailureListener {
+                // Handle unsuccessful uploads
+                println("didn't work")
+            }
     }
 
     private fun getPathName(): String {
