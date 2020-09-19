@@ -1,6 +1,5 @@
 package com.uli28
 
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -15,8 +14,9 @@ import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
 import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
 import com.uli28.wireflowcreator.wireflows.rules.WireflowInitialisationRule
-import com.uli28.wireflowcreator.wireflows.rules.WireflowTestingRule
-import org.junit.*
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4ClassRunner::class)
