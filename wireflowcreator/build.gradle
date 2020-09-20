@@ -57,6 +57,9 @@ dependencies {
     compileOnly("com.google.firebase:firebase-auth:19.4.0") {
         exclude group: 'org.json', module: 'json'
     }
+    compileOnly("com.google.firebase:firebase-database:19.4.0") {
+        exclude group: 'org.json', module: 'json'
+    }
     compileOnly("com.google.firebase:firebase-storage:19.2.0") {
         exclude group: 'org.json', module: 'json'
     }

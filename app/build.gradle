@@ -70,6 +70,10 @@ dependencies {
         // Exclude the "plain java" json module to fix build warnings.
         exclude group: 'org.json', module: 'json'
     }
+
+    implementation("com.google.firebase:firebase-database:19.4.0") {
+        exclude group: 'org.json', module: 'json'
+    }
 }
 
 // apply plugin: 'com.google.gms.google-services'

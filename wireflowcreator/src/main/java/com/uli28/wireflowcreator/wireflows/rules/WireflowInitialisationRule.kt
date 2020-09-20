@@ -2,9 +2,10 @@ package com.uli28.wireflowcreator.wireflows.rules
 
 import android.content.Context
 import android.os.Build
-import android.os.Environment.DIRECTORY_PICTURES
 import androidx.annotation.RequiresApi
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.GsonBuilder
 import com.uli28.wireflowcreator.BuildConfig
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
@@ -12,8 +13,9 @@ import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.io.File
 import java.lang.reflect.Field
+import java.util.concurrent.CountDownLatch
+
 
 class WireflowInitialisationRule(private var context: Context?) : TestRule {
     var flowPresentation: FlowPresentation? = null
@@ -73,14 +75,37 @@ class WireflowInitialisationRule(private var context: Context?) : TestRule {
     private fun writeToJson() {
         val gsonPretty = GsonBuilder().setPrettyPrinting().create()
         val json: String = gsonPretty.toJson(flowPresentation)
-
         println(json)
-        val context = getInstrumentation().targetContext.applicationContext
+        val instance = FirebaseDatabase.getInstance()
+        val database = instance.reference
 
-        File(
-            context.getExternalFilesDir(DIRECTORY_PICTURES).toString() + File.separator + "xy.json"
-        )
-            .writeText(json)
+        val mAuth = FirebaseAuth.getInstance()
+        val user: FirebaseUser? = mAuth.currentUser
+        if (user != null) {
+            // do your stuff
+        } else {
+            signInAnonymously(mAuth)
+        }
+        val done = CountDownLatch(1)
+        flowPresentation?.application?.let {
+            database.child(it).setValue(flowPresentation) { error, ref ->
+                println("worked")
+                done.countDown();
+                //setValue operation is done, you'll get null in errror and ref is the path reference for firebase database
+            }
+        }
+        try {
+            done.await() //it will wait till the response is received from firebase.
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
+
+//        val context = getInstrumentation().targetContext.applicationContext
+
+//        File(
+//            context.getExternalFilesDir(DIRECTORY_PICTURES).toString() + File.separator + "xy.json"
+//        )
+//            .writeText(json)
     }
 
     private fun getBuildConfigValue(
@@ -100,5 +125,16 @@ class WireflowInitialisationRule(private var context: Context?) : TestRule {
             e.printStackTrace()
         }
         return null
+    }
+
+    private fun signInAnonymously(mAuth: FirebaseAuth) {
+        mAuth.signInAnonymously()
+            .addOnSuccessListener {
+                println("worked")
+            }
+            .addOnFailureListener {
+                // Handle unsuccessful uploads
+                println("didn't work")
+            }
     }
 }
