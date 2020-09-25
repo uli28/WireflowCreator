@@ -4,7 +4,9 @@ package com.uli28.wireflowcreator.wireflows.rules
 import android.app.Activity
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.Lifecycle
+import androidx.test.espresso.Espresso
+import androidx.test.espresso.IdlingRegistry
+import androidx.test.espresso.IdlingResource
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
@@ -14,7 +16,6 @@ import com.uli28.wireflowcreator.wireflows.entities.Wireflow
 import com.uli28.wireflowcreator.wireflows.extensions.ScreenshotRecorder
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -22,23 +23,27 @@ class WireflowTestingRuleImplementation<T>(
     private val activityRule: ActivityScenarioRule<T>,
     private val statement: Statement,
     private val description: Description,
-    private val wireflowInitialisationRule: WireflowInitialisationRule
+    private val wireflowInitialisationRule: WireflowInitialisationRule,
+    private val idlingResource: IdlingResource?
 ) : Statement() where T : Activity {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
+        IdlingRegistry.getInstance().register(idlingResource)
+
         val testedRequirements = description
             .annotations
             .filterIsInstance<CreateWireflow>()
             .firstOrNull()
             ?.requirements
 
-        while(!activityRule.scenario.state.isAtLeast(Lifecycle.State.RESUMED)) {
-            sleep(100)
-        }
-        sleep(200)
+        Espresso.onIdle() // https://stackoverflow.com/questions/33120493/espresso-idling-resource-doesnt-work
 
         wireflowInitialisationRule.flowPresentation?.flows =
-            addFlowWithRequirements(description, testedRequirements, wireflowInitialisationRule.flowPresentation)
+            addFlowWithRequirements(
+                description,
+                testedRequirements,
+                wireflowInitialisationRule.flowPresentation
+            )
         // Do something before test.
         val startTime = System.currentTimeMillis()
         try {
@@ -48,6 +53,7 @@ class WireflowTestingRuleImplementation<T>(
             // Do something after the test.
             val endTime = System.currentTimeMillis()
             println("${description.methodName} took ${endTime - startTime} ms)")
+            IdlingRegistry.getInstance().unregister(idlingResource)
         }
     }
 }

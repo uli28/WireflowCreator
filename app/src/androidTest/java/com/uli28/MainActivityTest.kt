@@ -54,7 +54,7 @@ class MainActivityTest {
     private val activityRule = activityScenarioRule<MainActivity>()
 
 
-    private val wireflowTestingRule = WireflowTestingRule(activityRule, wireflowInitialisationRule)
+    private val wireflowTestingRule = WireflowTestingRule(activityRule, wireflowInitialisationRule, EspressoIdlingResource.countingIdlingResource)
 
 
     @get:Rule

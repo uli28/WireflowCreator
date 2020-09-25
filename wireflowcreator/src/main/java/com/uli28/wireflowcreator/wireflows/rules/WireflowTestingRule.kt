@@ -2,6 +2,7 @@ package com.uli28.wireflowcreator.wireflows.rules
 
 import android.app.Activity
 import android.view.View
+import androidx.test.espresso.IdlingResource
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.uli28.wireflowcreator.wireflows.extensions.RecordedViewInteraction
 import com.uli28.wireflowcreator.wireflows.extensions.WireflowRecorder
@@ -13,7 +14,8 @@ import org.junit.runners.model.Statement
 
 class WireflowTestingRule<T>(
     private val activityRule: ActivityScenarioRule<T>,
-    private var wireflowInitialisationRule: WireflowInitialisationRule
+    private var wireflowInitialisationRule: WireflowInitialisationRule,
+    private val idlingResource: IdlingResource?
 ) : TestRule where T : Activity {
     private var description: Description? = null
     override fun apply(base: Statement, description: Description) =
@@ -21,7 +23,7 @@ class WireflowTestingRule<T>(
 
     private fun createWireflowTestingRuleImplementation(base: Statement, description: Description): Statement? {
         this.description = description
-        return WireflowTestingRuleImplementation(activityRule, base, description, wireflowInitialisationRule)
+        return WireflowTestingRuleImplementation(activityRule, base, description, wireflowInitialisationRule, idlingResource)
     }
 
     fun onView(viewMatcher: Matcher<View>): RecordedViewInteraction =
