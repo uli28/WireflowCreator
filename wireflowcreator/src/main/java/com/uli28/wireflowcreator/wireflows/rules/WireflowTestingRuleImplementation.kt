@@ -31,7 +31,9 @@ class WireflowTestingRuleImplementation<T>(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
-        IdlingRegistry.getInstance().register(idlingResource)
+        idlingResource?.let {
+            IdlingRegistry.getInstance().register(idlingResource)
+        }
         activityRule.scenario.onActivity { activity ->
             activityIdlingResource = ActivityIdlingResource(activity)
             IdlingRegistry.getInstance()
@@ -61,7 +63,9 @@ class WireflowTestingRuleImplementation<T>(
             // Do something after the test.
             val endTime = System.currentTimeMillis()
             println("${description.methodName} took ${endTime - startTime} ms)")
-            IdlingRegistry.getInstance().unregister(idlingResource)
+            idlingResource?.let {
+                IdlingRegistry.getInstance().unregister(idlingResource)
+            }
         }
     }
 
@@ -117,6 +121,7 @@ class WireflowTestingRuleImplementation<T>(
     }
 }
 
+// https://stackoverflow.com/questions/50096441/how-to-make-espresso-wait-for-activity-that-is-triggered-by-a-firebase-call
 class ActivityIdlingResource<T> constructor(
     private val mainActivity: T
 ) : IdlingResource where T : AppCompatActivity  {
@@ -124,7 +129,7 @@ class ActivityIdlingResource<T> constructor(
     private var resourceCallback: IdlingResource.ResourceCallback? = null
 
     override fun getName(): String {
-        return ActivityIdlingResource::class.java.name
+        return (ActivityIdlingResource::class.java.name + System.currentTimeMillis())
     }
 
     override fun isIdleNow(): Boolean {
