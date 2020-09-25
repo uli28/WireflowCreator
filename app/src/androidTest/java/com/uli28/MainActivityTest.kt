@@ -22,25 +22,6 @@ import org.junit.*
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 
-class LoginIdlingResource<T> constructor(
-    private val mainActivity: MainActivity
-) : IdlingResource {
-
-    private var resourceCallback: IdlingResource.ResourceCallback? = null
-
-    override fun getName(): String {
-        return LoginIdlingResource::class.java.name
-    }
-
-    override fun isIdleNow(): Boolean {
-        return !mainActivity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) // <----- Important part
-    }
-
-    override fun registerIdleTransitionCallback(callback: IdlingResource.ResourceCallback?) {
-        this.resourceCallback = callback
-    }
-}
-
 @RunWith(AndroidJUnit4ClassRunner::class)
 @CreateFlowRepresentation(name = "myWireflowName")
 class MainActivityTest {
@@ -53,9 +34,7 @@ class MainActivityTest {
 
     private val activityRule = activityScenarioRule<MainActivity>()
 
-
     private val wireflowTestingRule = WireflowTestingRule(activityRule, wireflowInitialisationRule, EspressoIdlingResource.countingIdlingResource)
-
 
     @get:Rule
     val chain: RuleChain = RuleChain

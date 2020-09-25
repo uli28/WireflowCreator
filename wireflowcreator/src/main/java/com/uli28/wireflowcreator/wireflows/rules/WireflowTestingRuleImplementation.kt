@@ -1,9 +1,10 @@
 package com.uli28.wireflowcreator.wireflows.rules
 
 
-import android.app.Activity
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
@@ -25,10 +26,17 @@ class WireflowTestingRuleImplementation<T>(
     private val description: Description,
     private val wireflowInitialisationRule: WireflowInitialisationRule,
     private val idlingResource: IdlingResource?
-) : Statement() where T : Activity {
+) : Statement() where T : AppCompatActivity {
+    private var activityIdlingResource: ActivityIdlingResource<T>? = null
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
         IdlingRegistry.getInstance().register(idlingResource)
+        activityRule.scenario.onActivity { activity ->
+            activityIdlingResource = ActivityIdlingResource(activity)
+            IdlingRegistry.getInstance()
+                .register(activityIdlingResource)
+        }
 
         val testedRequirements = description
             .annotations
@@ -56,53 +64,74 @@ class WireflowTestingRuleImplementation<T>(
             IdlingRegistry.getInstance().unregister(idlingResource)
         }
     }
-}
 
-@RequiresApi(Build.VERSION_CODES.O)
-private fun addFlowWithRequirements(
-    description: Description,
-    requirements: Array<Requirement>?,
-    flowPresentation: FlowPresentation?
-): MutableMap<String, Wireflow> {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addFlowWithRequirements(
+        description: Description,
+        requirements: Array<Requirement>?,
+        flowPresentation: FlowPresentation?
+    ): MutableMap<String, Wireflow> {
 
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-    val currentTimeStamp = LocalDateTime.now().format(formatter)
-    val currentMillis = System.currentTimeMillis()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+        val currentTimeStamp = LocalDateTime.now().format(formatter)
+        val currentMillis = System.currentTimeMillis()
 
-    var flows = flowPresentation?.flows
+        var flows = flowPresentation?.flows
 
-    if (flows == null) {
-        flows = mutableMapOf()
-    }
-
-    val createdWireflow = Wireflow(currentTimeStamp, description.methodName)
-
-    addTestedRequirements(createdWireflow, requirements)
-    addInitialScreenshot(createdWireflow)
-
-    flows[description.methodName + "_" + currentMillis] = createdWireflow
-    return flows
-}
-
-fun addInitialScreenshot(targetFlow: Wireflow) {
-    var steps = targetFlow.steps
-    if (steps == null) {
-        steps = mutableListOf()
-    }
-    steps.add(ScreenshotRecorder().createScreenshot())
-    targetFlow.steps = steps
-}
-
-fun addTestedRequirements(createdWireflow: Wireflow, requirements: Array<Requirement>?) {
-    if (createdWireflow.testedRequirements == null) {
-        createdWireflow.testedRequirements = mutableListOf()
-    }
-
-    requirements?.let {
-        for (testedRequirement in requirements) {
-            createdWireflow.testedRequirements?.add(
-                TestedRequirement(testedRequirement.id, testedRequirement.link)
-            )
+        if (flows == null) {
+            flows = mutableMapOf()
         }
+
+        val createdWireflow = Wireflow(currentTimeStamp, description.methodName)
+
+        addTestedRequirements(createdWireflow, requirements)
+        addInitialScreenshot(createdWireflow)
+
+        flows[description.methodName + "_" + currentMillis] = createdWireflow
+        return flows
+    }
+
+    private fun addInitialScreenshot(targetFlow: Wireflow) {
+        var steps = targetFlow.steps
+        if (steps == null) {
+            steps = mutableListOf()
+        }
+        steps.add(ScreenshotRecorder().createScreenshot())
+        IdlingRegistry.getInstance()
+            .unregister(activityIdlingResource)
+        targetFlow.steps = steps
+    }
+
+    private fun addTestedRequirements(createdWireflow: Wireflow, requirements: Array<Requirement>?) {
+        if (createdWireflow.testedRequirements == null) {
+            createdWireflow.testedRequirements = mutableListOf()
+        }
+
+        requirements?.let {
+            for (testedRequirement in requirements) {
+                createdWireflow.testedRequirements?.add(
+                    TestedRequirement(testedRequirement.id, testedRequirement.link)
+                )
+            }
+        }
+    }
+}
+
+class ActivityIdlingResource<T> constructor(
+    private val mainActivity: T
+) : IdlingResource where T : AppCompatActivity  {
+
+    private var resourceCallback: IdlingResource.ResourceCallback? = null
+
+    override fun getName(): String {
+        return ActivityIdlingResource::class.java.name
+    }
+
+    override fun isIdleNow(): Boolean {
+        return mainActivity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) // <----- Important part
+    }
+
+    override fun registerIdleTransitionCallback(callback: IdlingResource.ResourceCallback?) {
+        this.resourceCallback = callback
     }
 }
