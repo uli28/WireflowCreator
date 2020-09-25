@@ -6,6 +6,6 @@ import org.junit.Rule
 
 open class WireflowCreator(wireflowInitialisationRule: WireflowInitialisationRule) {
 
-    @get:Rule
-    val wireflowTestingRule = WireflowTestingRule(wireflowInitialisationRule)
+//    @get:Rule
+//    val wireflowTestingRule = WireflowTestingRule(wireflowInitialisationRule)
 }

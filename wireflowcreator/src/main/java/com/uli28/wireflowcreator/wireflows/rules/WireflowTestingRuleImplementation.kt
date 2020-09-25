@@ -1,8 +1,11 @@
 package com.uli28.wireflowcreator.wireflows.rules
 
 
+import android.app.Activity
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.Lifecycle
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
@@ -15,11 +18,12 @@ import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class WireflowTestingRuleImplementation(
+class WireflowTestingRuleImplementation<T>(
+    private val activityRule: ActivityScenarioRule<T>,
     private val statement: Statement,
     private val description: Description,
-    private val flowPresentation: FlowPresentation?
-) : Statement() {
+    private val wireflowInitialisationRule: WireflowInitialisationRule
+) : Statement() where T : Activity {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
         val testedRequirements = description
@@ -27,9 +31,14 @@ class WireflowTestingRuleImplementation(
             .filterIsInstance<CreateWireflow>()
             .firstOrNull()
             ?.requirements
-        sleep(100)
-        flowPresentation?.flows =
-            addFlowWithRequirements(description, testedRequirements, flowPresentation)
+
+        while(!activityRule.scenario.state.isAtLeast(Lifecycle.State.RESUMED)) {
+            sleep(100)
+        }
+        sleep(200)
+
+        wireflowInitialisationRule.flowPresentation?.flows =
+            addFlowWithRequirements(description, testedRequirements, wireflowInitialisationRule.flowPresentation)
         // Do something before test.
         val startTime = System.currentTimeMillis()
         try {

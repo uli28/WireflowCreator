@@ -43,6 +43,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     def androidx_test = "1.1.2-rc02"
     androidTestImplementation "androidx.test.ext:junit:$androidx_test"
+    implementation "androidx.test.ext:junit-ktx:$androidx_test"
 
     // Screenshots
     implementation "androidx.test:runner:$androidx_core_test"

@@ -17,7 +17,7 @@ import java.lang.reflect.Field
 import java.util.concurrent.CountDownLatch
 
 
-class WireflowInitialisationRule(private var context: Context?) : TestRule {
+class WireflowInitialisationRule(var context: Context?) : TestRule {
     var flowPresentation: FlowPresentation? = null
 
     override fun apply(base: Statement, description: Description) =
