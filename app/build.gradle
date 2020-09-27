@@ -15,7 +15,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "BUILD_TIMESTAMP", "\"${new Date().format('yyyy-MM-dd HH:mm:ss.SS', TimeZone.getDefault()).toString()}\""
-        buildConfigField "String", "enableWireflowCreation", System.getenv("ENABLE_WIREFLOW_CREATION").toString()
+        buildConfigField "String", "ENABLE_WIREFLOW_CREATION",  "\"${System.getenv('ENABLE_WIREFLOW_CREATION').toString()}\""
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -26,13 +26,13 @@ android {
     }
 
     buildTypes {
+
         release {
             minifyEnabled false
-            buildConfigField "String", "enableWireflowCreation", System.getenv("ENABLE_WIREFLOW_CREATION").toString()
+            buildConfigField "String", "ENABLE_WIREFLOW_CREATION", System.getenv("ENABLE_WIREFLOW_CREATION").toString()
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
@@ -80,4 +80,4 @@ dependencies {
     }
 }
 
-// apply plugin: 'com.google.gms.google-services'
+// apply plugin: 'com.google.gms.google-services';

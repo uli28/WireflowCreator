@@ -4,23 +4,29 @@ import android.view.View
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewAssertion
 import androidx.test.espresso.ViewInteraction
-import com.uli28.wireflowcreator.wireflows.rules.WireflowInitialisationRule
+import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.isWireflowCreationEnabled
 import com.uli28.wireflowcreator.wireflows.entities.*
+import com.uli28.wireflowcreator.wireflows.rules.WireflowInitialisationRule
 import org.junit.runner.Description
 
 class RecordedViewInteraction(
-    var wireflowInitialisationRule: WireflowInitialisationRule,
-    var description: Description?,
-    var viewInteraction: ViewInteraction
+    private var wireflowInitialisationRule: WireflowInitialisationRule,
+    private var description: Description?,
+    private var viewInteraction: ViewInteraction
 ) {
     fun perform(vararg viewActions: ViewAction): RecordedViewInteraction {
 
-        viewInteraction.check { view, _ ->
-            recordPositions(view, wireflowInitialisationRule.flowPresentation, description)
+        if (isWireflowCreationEnabled()) {
+            viewInteraction.check { view, _ ->
+                recordPositions(view, wireflowInitialisationRule.flowPresentation, description)
+            }
         }
 
         val resultingViewInteraction = viewInteraction.perform(*viewActions)
-        recordImage(wireflowInitialisationRule.flowPresentation, description)
+
+        if (isWireflowCreationEnabled()) {
+            recordImage(wireflowInitialisationRule.flowPresentation, description)
+        }
         return RecordedViewInteraction(
             wireflowInitialisationRule,
             description,

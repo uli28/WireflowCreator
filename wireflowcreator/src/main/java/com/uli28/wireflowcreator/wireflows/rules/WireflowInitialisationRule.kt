@@ -9,11 +9,17 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.GsonBuilder
 import com.uli28.wireflowcreator.BuildConfig
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
+import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.getBuildConfigValue
+import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.isWireflowCreationEnabled
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.APPLICATION_ID
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.BUILD_TIMESTAMP
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.BUILD_TYPE
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.DEFAULT_DATETIME_FORMAT
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.FLAVOR
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.lang.reflect.Field
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CountDownLatch
@@ -31,6 +37,10 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
     ) : Statement() {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun evaluate() {
+            if (!isWireflowCreationEnabled()) {
+                statement.evaluate()
+                return
+            }
             val name = description
                 .annotations
                 .filterIsInstance<CreateFlowRepresentation>()
@@ -50,9 +60,9 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
 
         @RequiresApi(Build.VERSION_CODES.O)
         private fun initWireflow(name: String, description: Description) {
-            val buildTimestamp = getBuildConfigValue(context!!, "BUILD_TIMESTAMP").toString()
-            val flavor = getBuildConfigValue(context!!, "FLAVOR").toString()
-            val buildType = getBuildConfigValue(context!!, "BUILD_TYPE").toString()
+            val buildTimestamp = getBuildConfigValue(context?.packageName + suffix, BUILD_TIMESTAMP).toString()
+            val flavor = getBuildConfigValue(context?.packageName + suffix, FLAVOR).toString()
+            val buildType = getBuildConfigValue(context?.packageName + suffix, BUILD_TYPE).toString()
 
             flowPresentation = FlowPresentation(
                 name,
@@ -66,29 +76,10 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
 
         private fun getApplicationName(flavor: String, buildType: String): String {
             if (flavor.isEmpty() || buildType.isEmpty()) {
-                return getBuildConfigValue(context!!, "APPLICATION_ID")
+                return getBuildConfigValue(context?.packageName + suffix, APPLICATION_ID)
                     .toString().substringAfterLast(".")
             }
             return flavor + buildType
-        }
-
-        private fun getBuildConfigValue(
-            context: Context,
-            fieldName: String?
-        ): Any? {
-            try {
-                val clazz =
-                    Class.forName(context.packageName + suffix + ".BuildConfig")
-                val field: Field = clazz.getField(fieldName!!)
-                return field.get(null)
-            } catch (e: ClassNotFoundException) {
-                e.printStackTrace()
-            } catch (e: NoSuchFieldException) {
-                e.printStackTrace()
-            } catch (e: IllegalAccessException) {
-                e.printStackTrace()
-            }
-            return null
         }
 
         ///storage/emulated/0/Android/data/com.codingwithmitch.espressouitestexamples/files/Pictures
@@ -108,14 +99,14 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
                 signInAnonymously(mAuth)
             }
             val done = CountDownLatch(1)
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+            val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT)
             val buildDate = LocalDateTime.parse(flowPresentation?.buildDate, formatter)
-            val idFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SS")
+            val idFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS")
             flowPresentation?.application?.let {
                 database.child(it).child(buildDate.format(idFormatter))
                     .setValue(flowPresentation) { error, ref ->
                     println("worked")
-                    done.countDown();
+                    done.countDown()
                     //setValue operation is done, you'll get null in errror and ref is the path reference for firebase database
                 }
             }

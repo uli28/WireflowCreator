@@ -12,6 +12,7 @@ import androidx.test.espresso.IdlingResource
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
+import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.isWireflowCreationEnabled
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
 import com.uli28.wireflowcreator.wireflows.entities.TestedRequirement
 import com.uli28.wireflowcreator.wireflows.entities.Wireflow
@@ -36,6 +37,10 @@ class WireflowTestingRuleImplementation<T>(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
+        if (!isWireflowCreationEnabled()) {
+            statement.evaluate()
+            return
+        }
         idlingResource?.let {
             IdlingRegistry.getInstance().register(idlingResource)
         }
@@ -133,7 +138,7 @@ class WireflowTestingRuleImplementation<T>(
             IdlingRegistry.getInstance()
                 .register(viewVisibilityIdlingResource)
         }
-        return currentActivity;
+        return currentActivity
     }
 
     private fun addTestedRequirements(createdWireflow: Wireflow, requirements: Array<Requirement>?) {
