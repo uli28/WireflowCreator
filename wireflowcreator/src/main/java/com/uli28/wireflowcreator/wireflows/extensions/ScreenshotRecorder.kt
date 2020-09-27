@@ -1,5 +1,6 @@
 package com.uli28.wireflowcreator.wireflows.extensions
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Environment.DIRECTORY_PICTURES
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
@@ -28,14 +29,16 @@ class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
     }
 }
 
-class ScreenshotRecorder {
+class ScreenshotRecorder(private val activity: Activity?) {
     fun createScreenshot(): ImageType {
         val imageType = ImageType()
         val filename = System.currentTimeMillis().toString()
 
-        val capture = Screenshot.capture()
+        var capture = Screenshot.capture()
+        activity?.let{
+            capture = Screenshot.capture(activity)
+        }
         capture.name = filename
-        capture.format = Bitmap.CompressFormat.PNG
 
         imageType.width = capture.bitmap.width
         imageType.height = capture.bitmap.height

@@ -1,10 +1,11 @@
 package com.uli28.wireflowcreator.wireflows.rules
 
-
+import android.app.Activity
 import android.os.Build
+import android.view.View
+import android.view.View.VISIBLE
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
@@ -15,6 +16,8 @@ import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
 import com.uli28.wireflowcreator.wireflows.entities.TestedRequirement
 import com.uli28.wireflowcreator.wireflows.entities.Wireflow
 import com.uli28.wireflowcreator.wireflows.extensions.ScreenshotRecorder
+import com.uli28.wireflowcreator.wireflows.idlingresources.ActivityIdlingResource
+import com.uli28.wireflowcreator.wireflows.idlingresources.ViewVisibilityIdlingResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.time.LocalDateTime
@@ -25,19 +28,16 @@ class WireflowTestingRuleImplementation<T>(
     private val statement: Statement,
     private val description: Description,
     private val wireflowInitialisationRule: WireflowInitialisationRule,
-    private val idlingResource: IdlingResource?
+    private val idlingResource: IdlingResource?,
+    private val activityId: Int
 ) : Statement() where T : AppCompatActivity {
     private var activityIdlingResource: ActivityIdlingResource<T>? = null
+    private var viewVisibilityIdlingResource: ViewVisibilityIdlingResource? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
         idlingResource?.let {
             IdlingRegistry.getInstance().register(idlingResource)
-        }
-        activityRule.scenario.onActivity { activity ->
-            activityIdlingResource = ActivityIdlingResource(activity)
-            IdlingRegistry.getInstance()
-                .register(activityIdlingResource)
         }
 
         val testedRequirements = description
@@ -45,8 +45,6 @@ class WireflowTestingRuleImplementation<T>(
             .filterIsInstance<CreateWireflow>()
             .firstOrNull()
             ?.requirements
-
-        Espresso.onIdle() // https://stackoverflow.com/questions/33120493/espresso-idling-resource-doesnt-work
 
         wireflowInitialisationRule.flowPresentation?.flows =
             addFlowWithRequirements(
@@ -100,10 +98,42 @@ class WireflowTestingRuleImplementation<T>(
         if (steps == null) {
             steps = mutableListOf()
         }
-        steps.add(ScreenshotRecorder().createScreenshot())
+
+        val currentActivity = registerIdlingResourcesForView()
+        Espresso.onIdle() // https://stackoverflow.com/questions/33120493/espresso-idling-resource-doesnt-work
+
+        steps.add(ScreenshotRecorder(currentActivity).createScreenshot())
+        unregisterIdlingResourcesForView()
+        targetFlow.steps = steps
+    }
+
+    private fun unregisterIdlingResourcesForView() {
         IdlingRegistry.getInstance()
             .unregister(activityIdlingResource)
-        targetFlow.steps = steps
+        IdlingRegistry.getInstance()
+            .unregister(viewVisibilityIdlingResource)
+    }
+
+    private fun registerIdlingResourcesForView(): Activity? {
+        var view: View? = null
+        var currentActivity: Activity? = null
+        activityRule.scenario.onActivity { activity ->
+            currentActivity = activity
+            activityIdlingResource = ActivityIdlingResource(activity)
+            IdlingRegistry.getInstance()
+                .register(activityIdlingResource)
+            view = activity.findViewById(activityId)
+        }
+        view?.let {
+            viewVisibilityIdlingResource =
+                ViewVisibilityIdlingResource(
+                    view!!,
+                    VISIBLE
+                )
+            IdlingRegistry.getInstance()
+                .register(viewVisibilityIdlingResource)
+        }
+        return currentActivity;
     }
 
     private fun addTestedRequirements(createdWireflow: Wireflow, requirements: Array<Requirement>?) {
@@ -118,25 +148,5 @@ class WireflowTestingRuleImplementation<T>(
                 )
             }
         }
-    }
-}
-
-// https://stackoverflow.com/questions/50096441/how-to-make-espresso-wait-for-activity-that-is-triggered-by-a-firebase-call
-class ActivityIdlingResource<T> constructor(
-    private val mainActivity: T
-) : IdlingResource where T : AppCompatActivity  {
-
-    private var resourceCallback: IdlingResource.ResourceCallback? = null
-
-    override fun getName(): String {
-        return (ActivityIdlingResource::class.java.name + System.currentTimeMillis())
-    }
-
-    override fun isIdleNow(): Boolean {
-        return mainActivity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) // <----- Important part
-    }
-
-    override fun registerIdleTransitionCallback(callback: IdlingResource.ResourceCallback?) {
-        this.resourceCallback = callback
     }
 }

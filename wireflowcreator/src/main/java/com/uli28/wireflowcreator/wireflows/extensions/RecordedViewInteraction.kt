@@ -74,7 +74,7 @@ class RecordedViewInteraction(
     }
 
     private fun createStep(): ImageType {
-        return ScreenshotRecorder().createScreenshot()
+        return ScreenshotRecorder(null).createScreenshot()
     }
 
 

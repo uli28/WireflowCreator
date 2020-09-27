@@ -14,7 +14,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "BUILD_TIMESTAMP", "\"${new Date().format('yyyy-MM-dd HH:mm:ss.SSS', TimeZone.getDefault()).toString()}\""
+        buildConfigField "String", "BUILD_TIMESTAMP", "\"${new Date().format('yyyy-MM-dd HH:mm:ss.SS', TimeZone.getDefault()).toString()}\""
+        buildConfigField "String", "enableWireflowCreation", System.getenv("ENABLE_WIREFLOW_CREATION").toString()
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

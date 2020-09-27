@@ -14,7 +14,8 @@ import org.junit.runners.model.Statement
 class WireflowTestingRule<T>(
     private val activityRule: ActivityScenarioRule<T>,
     private var wireflowInitialisationRule: WireflowInitialisationRule,
-    private val idlingResource: IdlingResource?
+    private val idlingResource: IdlingResource?,
+    private val activityId: Int
 ) : TestRule where T : AppCompatActivity {
     private var description: Description? = null
     override fun apply(base: Statement, description: Description) =
@@ -22,7 +23,7 @@ class WireflowTestingRule<T>(
 
     private fun createWireflowTestingRuleImplementation(base: Statement, description: Description): Statement? {
         this.description = description
-        return WireflowTestingRuleImplementation(activityRule, base, description, wireflowInitialisationRule, idlingResource)
+        return WireflowTestingRuleImplementation(activityRule, base, description, wireflowInitialisationRule, idlingResource, activityId)
     }
 
     fun onView(viewMatcher: Matcher<View>): RecordedViewInteraction =
