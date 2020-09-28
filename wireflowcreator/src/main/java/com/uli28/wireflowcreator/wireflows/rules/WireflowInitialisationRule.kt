@@ -60,7 +60,7 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
 
         @RequiresApi(Build.VERSION_CODES.O)
         private fun initWireflow(name: String, description: Description) {
-            val buildTimestamp = getBuildConfigValue(context?.packageName + suffix, BUILD_TIMESTAMP).toString()
+            val buildTimestamp = getBuildConfigValue(context?.packageName + (suffix ?: ""), BUILD_TIMESTAMP).toString()
             val flavor = getBuildConfigValue(context?.packageName + suffix, FLAVOR).toString()
             val buildType = getBuildConfigValue(context?.packageName + suffix, BUILD_TYPE).toString()
 

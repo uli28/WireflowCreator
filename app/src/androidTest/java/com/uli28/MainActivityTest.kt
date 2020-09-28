@@ -7,6 +7,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
+import com.uli28.app.EspressoIdlingResource
 import com.uli28.app.MainActivity
 import com.uli28.wireflowcreator.app.R
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
@@ -33,7 +34,7 @@ class MainActivityTest {
 
    private val activityRule = activityScenarioRule<MainActivity>()
 
-  private val wireflowTestingRule = WireflowTestingRule(activityRule, wireflowInitialisationRule, null, R.id.main)
+  private val wireflowTestingRule = WireflowTestingRule(activityRule, wireflowInitialisationRule, EspressoIdlingResource.countingIdlingResource, R.id.main)
 
     @get:Rule
     val chain: RuleChain = RuleChain
