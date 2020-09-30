@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.CountDownLatch
 
 
-class WireflowInitialisationRule(var context: Context?, var suffix: String?) : TestRule {
+class WireflowInitialisationRule(var context: Context?, var packageName: String?) : TestRule {
     var flowPresentation: FlowPresentation? = null
 
     override fun apply(base: Statement, description: Description) =
@@ -60,9 +60,12 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
 
         @RequiresApi(Build.VERSION_CODES.O)
         private fun initWireflow(name: String, description: Description) {
-            val buildTimestamp = getBuildConfigValue(context?.packageName + (suffix ?: ""), BUILD_TIMESTAMP).toString()
-            val flavor = getBuildConfigValue(context?.packageName + suffix, FLAVOR).toString()
-            val buildType = getBuildConfigValue(context?.packageName + suffix, BUILD_TYPE).toString()
+            packageName?.let{
+                packageName = context?.packageName
+            }
+            val buildTimestamp = getBuildConfigValue( packageName!!, BUILD_TIMESTAMP).toString()
+            val flavor = getBuildConfigValue(packageName!!, FLAVOR).toString()
+            val buildType = getBuildConfigValue(packageName!!, BUILD_TYPE).toString()
 
             flowPresentation = FlowPresentation(
                 name,
@@ -76,7 +79,7 @@ class WireflowInitialisationRule(var context: Context?, var suffix: String?) : T
 
         private fun getApplicationName(flavor: String, buildType: String): String {
             if (flavor.isEmpty() || buildType.isEmpty()) {
-                return getBuildConfigValue(context?.packageName + suffix, APPLICATION_ID)
+                return getBuildConfigValue(packageName!!, APPLICATION_ID)
                     .toString().substringAfterLast(".")
             }
             return flavor + buildType
