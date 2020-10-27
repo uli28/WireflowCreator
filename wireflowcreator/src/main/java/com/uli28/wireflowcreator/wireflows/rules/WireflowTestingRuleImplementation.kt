@@ -37,12 +37,24 @@ class WireflowTestingRuleImplementation<T>(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun evaluate() {
-        if (!isWireflowCreationEnabled()) {
-            statement.evaluate()
-            return
-        }
+        // Do something before test.
+        val startTime = System.currentTimeMillis()
         idlingResource?.let {
             IdlingRegistry.getInstance().register(idlingResource)
+        }
+
+        if (!isWireflowCreationEnabled()) {
+            try {
+                statement.evaluate()
+            } finally {
+                // Do something after the test.
+                val endTime = System.currentTimeMillis()
+                println("${description.methodName} took ${endTime - startTime} ms)")
+                idlingResource?.let {
+                    IdlingRegistry.getInstance().unregister(idlingResource)
+                }
+                return
+            }
         }
 
         val testedRequirements = description
@@ -57,8 +69,7 @@ class WireflowTestingRuleImplementation<T>(
                 testedRequirements,
                 wireflowInitialisationRule.flowPresentation
             )
-        // Do something before test.
-        val startTime = System.currentTimeMillis()
+
         try {
             // Execute the test.
             statement.evaluate()

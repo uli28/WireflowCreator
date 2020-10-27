@@ -29,7 +29,7 @@ class MainActivityTest {
     companion object {
         @get:ClassRule
         @JvmStatic
-        val wireflowInitialisationRule = WireflowInitialisationRule(getApplicationContext(), ".app")
+        val wireflowInitialisationRule = WireflowInitialisationRule(getApplicationContext(), "com.uli28.wireflowcreator.app")
     }
 
    private val activityRule = activityScenarioRule<MainActivity>()

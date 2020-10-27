@@ -11,10 +11,12 @@ import com.uli28.wireflowcreator.BuildConfig
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
 import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.getBuildConfigValue
 import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.isWireflowCreationEnabled
+import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.setIsWireflowCreationEnabled
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.APPLICATION_ID
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.BUILD_TIMESTAMP
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.BUILD_TYPE
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.DEFAULT_DATETIME_FORMAT
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.ENABLE_WIREFLOW_CREATION
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.FLAVOR
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
 import org.junit.rules.TestRule
@@ -37,6 +39,9 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
     ) : Statement() {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun evaluate() {
+            val wireflowCreation = getBuildConfigValue(packageName!!, ENABLE_WIREFLOW_CREATION).toString()
+            setIsWireflowCreationEnabled(wireflowCreation)
+
             if (!isWireflowCreationEnabled()) {
                 statement.evaluate()
                 return
@@ -108,23 +113,15 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
             flowPresentation?.application?.let {
                 database.child(it).child(buildDate.format(idFormatter))
                     .setValue(flowPresentation) { error, ref ->
-                    println("worked")
                     done.countDown()
-                    //setValue operation is done, you'll get null in errror and ref is the path reference for firebase database
+                    //setValue operation is done, you'll get null in error and ref is the path reference for firebase database
                 }
             }
             try {
-                done.await() //it will wait till the response is received from firebase.
+                done.await() // it will wait till the response is received from firebase.
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
-
-//        val context = getInstrumentation().targetContext.applicationContext
-
-//        File(
-//            context.getExternalFilesDir(DIRECTORY_PICTURES).toString() + File.separator + "xy.json"
-//        )
-//            .writeText(json)
         }
 
         private fun signInAnonymously(mAuth: FirebaseAuth) {

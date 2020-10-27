@@ -1,21 +1,31 @@
 package com.uli28.wireflowcreator.wireflows.config
 
 import androidx.test.platform.app.InstrumentationRegistry
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.ENABLE_WIREFLOW_CREATION
 import java.lang.reflect.Field
 
 class BuildConfigValueProvider {
     companion object{
         private var cachedIsWireflowEnabledValue: Boolean? = null
+        private var buildConfigEnvironmentVariable: String? = null
         fun isWireflowCreationEnabled(): Boolean {
             cachedIsWireflowEnabledValue?.let{
                 return cachedIsWireflowEnabledValue as Boolean
             }
-            InstrumentationRegistry.getArguments().getString("ENABLE_WIREFLOW_CREATION")
+            InstrumentationRegistry.getArguments().getString(ENABLE_WIREFLOW_CREATION)
                 ?.let{
                     cachedIsWireflowEnabledValue = it.toBoolean()
                     return it.toBoolean()
                 }
+            buildConfigEnvironmentVariable?.let{
+                cachedIsWireflowEnabledValue = it.toBoolean()
+                return it.toBoolean()
+            }
             return false
+        }
+
+        fun setIsWireflowCreationEnabled(environmentPropertyIsEnabled: String?) {
+            buildConfigEnvironmentVariable = environmentPropertyIsEnabled
         }
 
         fun getBuildConfigValue(

@@ -21,7 +21,7 @@ class SecondActivity : AppCompatActivity() {
         // again we use a kotlin coroutine to simulate a 3 second network request:
         val job = GlobalScope.launch {
             // our network call starts
-            delay(3000)
+            delay(200)
         }
         job.invokeOnCompletion {
             runOnUiThread { tv1.text = "Second Activity" }
