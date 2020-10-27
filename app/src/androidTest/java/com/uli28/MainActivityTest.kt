@@ -29,12 +29,18 @@ class MainActivityTest {
     companion object {
         @get:ClassRule
         @JvmStatic
-        val wireflowInitialisationRule = WireflowInitialisationRule(getApplicationContext(), "com.uli28.wireflowcreator.app")
+        val wireflowInitialisationRule =
+            WireflowInitialisationRule(getApplicationContext(), "com.uli28.wireflowcreator.app")
     }
 
-   private val activityRule = activityScenarioRule<MainActivity>()
+    private val activityRule = activityScenarioRule<MainActivity>()
 
-  private val wireflowTestingRule = WireflowTestingRule(activityRule, wireflowInitialisationRule, EspressoIdlingResource.countingIdlingResource, R.id.main)
+    private val wireflowTestingRule = WireflowTestingRule(
+        activityRule,
+        wireflowInitialisationRule,
+        EspressoIdlingResource.countingIdlingResource,
+        R.id.main
+    )
 
     @get:Rule
     val chain: RuleChain = RuleChain
@@ -64,6 +70,18 @@ class MainActivityTest {
         wireflowTestingRule.onView(withId(R.id.button_back)).perform(click())
 
         println("done")
+    }
+
+    @Test
+    @CreateWireflow([Requirement(id = "MPO-123", link = "https://www.google.at")])
+    fun test_navSecondaryActivity_shouldFail() {
+        wireflowTestingRule.onView(withId(R.id.button_next_activity)).perform(click())
+
+        wireflowTestingRule.onView(withId(R.id.secondary)).check(matches(isDisplayed()))
+
+        wireflowTestingRule.onView(withId(R.id.main)).perform(click())
+
+        wireflowTestingRule.onView(withId(R.id.secondary)).check(matches(isDisplayed()))
     }
 }
 

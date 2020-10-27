@@ -14,6 +14,7 @@ import com.uli28.wireflowcreator.wireflows.annotations.CreateWireflow
 import com.uli28.wireflowcreator.wireflows.annotations.Requirement
 import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.isWireflowCreationEnabled
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
+import com.uli28.wireflowcreator.wireflows.entities.TestStatus
 import com.uli28.wireflowcreator.wireflows.entities.TestedRequirement
 import com.uli28.wireflowcreator.wireflows.entities.Wireflow
 import com.uli28.wireflowcreator.wireflows.extensions.ScreenshotRecorder
@@ -63,20 +64,38 @@ class WireflowTestingRuleImplementation<T>(
             .firstOrNull()
             ?.requirements
 
+        val currentMillis = System.currentTimeMillis()
+
         wireflowInitialisationRule.flowPresentation?.flows =
             addFlowWithRequirements(
                 description,
                 testedRequirements,
-                wireflowInitialisationRule.flowPresentation
+                wireflowInitialisationRule.flowPresentation,
+                currentMillis
             )
-
+        var thrownException: Exception? = null
         try {
             // Execute the test.
             statement.evaluate()
+        } catch (e: Exception) {
+            // handler
+            thrownException = e
+            throw e
         } finally {
             // Do something after the test.
             val endTime = System.currentTimeMillis()
-            println("${description.methodName} took ${endTime - startTime} ms)")
+            val passedMilliSeconds = endTime - startTime
+            println("${description.methodName} took $passedMilliSeconds ms)")
+            val currentFlow =
+                wireflowInitialisationRule.flowPresentation?.flows!![description.methodName + "_" + currentMillis]
+            if (thrownException != null) {
+                currentFlow?.testStatus =
+                    thrownException.message?.let { TestStatus(passedMilliSeconds, it) }
+            } else {
+                currentFlow?.testStatus = TestStatus(passedMilliSeconds, null)
+            }
+            wireflowInitialisationRule.flowPresentation?.flows!![description.methodName + "_" + currentMillis] =
+                currentFlow!!
             idlingResource?.let {
                 IdlingRegistry.getInstance().unregister(idlingResource)
             }
@@ -87,12 +106,12 @@ class WireflowTestingRuleImplementation<T>(
     private fun addFlowWithRequirements(
         description: Description,
         requirements: Array<Requirement>?,
-        flowPresentation: FlowPresentation?
+        flowPresentation: FlowPresentation?,
+        currentMillis: Long
     ): MutableMap<String, Wireflow> {
 
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
         val currentTimeStamp = LocalDateTime.now().format(formatter)
-        val currentMillis = System.currentTimeMillis()
 
         var flows = flowPresentation?.flows
 
@@ -152,7 +171,10 @@ class WireflowTestingRuleImplementation<T>(
         return currentActivity
     }
 
-    private fun addTestedRequirements(createdWireflow: Wireflow, requirements: Array<Requirement>?) {
+    private fun addTestedRequirements(
+        createdWireflow: Wireflow,
+        requirements: Array<Requirement>?
+    ) {
         if (createdWireflow.testedRequirements == null) {
             createdWireflow.testedRequirements = mutableListOf()
         }
