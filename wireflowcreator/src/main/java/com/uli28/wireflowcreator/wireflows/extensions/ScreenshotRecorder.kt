@@ -29,14 +29,14 @@ class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
     }
 }
 
-class ScreenshotRecorder(private val activity: Activity?) {
+class ScreenshotRecorder(private val initialScreenshot: Boolean) {
     fun createScreenshot(): ImageType {
         val imageType = ImageType()
         val filename = System.currentTimeMillis().toString()
 
         var capture = Screenshot.capture()
-        activity?.let{
-            capture = Screenshot.capture(activity)
+        if (initialScreenshot) {
+            capture = Screenshot.capture()
         }
         capture.name = filename
 
