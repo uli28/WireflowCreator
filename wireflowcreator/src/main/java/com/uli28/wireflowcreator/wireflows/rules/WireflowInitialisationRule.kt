@@ -111,7 +111,7 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
             val buildDate = LocalDateTime.parse(flowPresentation?.buildDate, formatter)
             val idFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS")
             flowPresentation?.application?.let {
-                database.child(it).child(buildDate.format(idFormatter))
+                database.child("wireflow").child(it).child(buildDate.format(idFormatter))
                     .setValue(flowPresentation) { error, ref ->
                     done.countDown()
                     //setValue operation is done, you'll get null in error and ref is the path reference for firebase database
