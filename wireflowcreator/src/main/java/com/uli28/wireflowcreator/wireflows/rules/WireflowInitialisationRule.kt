@@ -5,8 +5,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.FirebaseDatabase
-import com.google.gson.GsonBuilder
+import com.google.firebase.database.*
+import com.google.gson.Gson
 import com.uli28.wireflowcreator.BuildConfig
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
 import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.getBuildConfigValue
@@ -26,7 +26,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CountDownLatch
 
-
 class WireflowInitialisationRule(var context: Context?, var packageName: String?) : TestRule {
     var flowPresentation: FlowPresentation? = null
 
@@ -39,11 +38,19 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
     ) : Statement() {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun evaluate() {
-            val wireflowCreation = getBuildConfigValue(packageName!!, ENABLE_WIREFLOW_CREATION).toString()
+            val startTime = System.currentTimeMillis()
+            val wireflowCreation =
+                getBuildConfigValue(packageName!!, ENABLE_WIREFLOW_CREATION).toString()
             setIsWireflowCreationEnabled(wireflowCreation)
 
             if (!isWireflowCreationEnabled()) {
-                statement.evaluate()
+                try {
+                    statement.evaluate()
+                } finally {
+                    // Do something after the test.
+                    val endTime = System.currentTimeMillis()
+                    println("${description.displayName.substringAfterLast(".")} took ${endTime - startTime} ms")
+                }
                 return
             }
             val name = description
@@ -59,7 +66,9 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
                 statement.evaluate()
             } finally {
                 // Do something after the test.
-                writeToJson()
+                val endTime = System.currentTimeMillis()
+                println("${description.displayName.substringAfterLast(".")} took ${endTime - startTime} ms")
+                writeToDb()
             }
         }
 
@@ -68,7 +77,7 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
             if (packageName == null) {
                 packageName = context?.packageName
             }
-            val buildTimestamp = getBuildConfigValue( packageName!!, BUILD_TIMESTAMP).toString()
+            val buildTimestamp = getBuildConfigValue(packageName!!, BUILD_TIMESTAMP).toString()
             val flavor = getBuildConfigValue(packageName!!, FLAVOR).toString()
             val buildType = getBuildConfigValue(packageName!!, BUILD_TYPE).toString()
 
@@ -76,10 +85,8 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
                 name,
                 buildTimestamp,
                 getApplicationName(flavor, buildType),
-                BuildConfig.VERSION_NAME,
-                description.displayName.substringAfterLast(".")
+                BuildConfig.VERSION_NAME
             )
-            println(flowPresentation)
         }
 
         private fun getApplicationName(flavor: String, buildType: String): String {
@@ -90,37 +97,79 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
             return flavor + buildType
         }
 
+        private fun updateWireflowIfPresent(
+            database: DatabaseReference,
+            app: String,
+            formattedDate: String
+        ) {
+            val done = CountDownLatch(1)
+
+            val wireflowListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.childrenCount == 0L) {
+                        uploadFlows(database, app, formattedDate, done)
+                        return
+                    } else {
+                        val gson = Gson()
+                        val presentFlowPresentation = gson.fromJson(
+                            gson.toJson(dataSnapshot.value),
+                            FlowPresentation::class.java
+                        )
+                        val mapContainingAllFlows = presentFlowPresentation.flows
+                        flowPresentation?.flows?.let { mapContainingAllFlows?.putAll(it) }
+                        flowPresentation?.flows = mapContainingAllFlows
+
+                        uploadFlows(database, app, formattedDate, done)
+                        return
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    println("loadPost:onCancelled ${databaseError.toException()}")
+                }
+            }
+            database.child("wireflow").child(app).child(formattedDate)
+                .addListenerForSingleValueEvent(wireflowListener)
+            try {
+                done.await() // it will wait till the response is received from firebase.
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+        }
+
+
+        private fun uploadFlows(
+            database: DatabaseReference,
+            app: String,
+            formattedDate: String,
+            done: CountDownLatch
+        ) {
+            database.child("wireflow").child(app).child(formattedDate)
+                .setValue(flowPresentation) { error, ref ->
+                    //setValue operation is done, you'll get null in error and ref is the path reference for firebase database
+                    done.countDown()
+                }
+        }
+
         ///storage/emulated/0/Android/data/com.codingwithmitch.espressouitestexamples/files/Pictures
         @RequiresApi(Build.VERSION_CODES.O)
-        private fun writeToJson() {
-            val gsonPretty = GsonBuilder().setPrettyPrinting().create()
-            val json: String = gsonPretty.toJson(flowPresentation)
-            println(json)
+        private fun writeToDb() {
+            // val gsonPretty = GsonBuilder().setPrettyPrinting().create()
+            // val json: String = gsonPretty.toJson(flowPresentation)
             val instance = FirebaseDatabase.getInstance()
             val database = instance.reference
 
             val mAuth = FirebaseAuth.getInstance()
             val user: FirebaseUser? = mAuth.currentUser
-            if (user != null) {
-                // do your stuff
-            } else {
+            if (user == null) {
                 signInAnonymously(mAuth)
             }
-            val done = CountDownLatch(1)
             val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT)
             val buildDate = LocalDateTime.parse(flowPresentation?.buildDate, formatter)
             val idFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS")
+            val formattedDate = buildDate.format(idFormatter)
             flowPresentation?.application?.let {
-                database.child("wireflow").child(it).child(buildDate.format(idFormatter))
-                    .setValue(flowPresentation) { error, ref ->
-                    done.countDown()
-                    //setValue operation is done, you'll get null in error and ref is the path reference for firebase database
-                }
-            }
-            try {
-                done.await() // it will wait till the response is received from firebase.
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
+                updateWireflowIfPresent(database, it, formattedDate)
             }
         }
 
@@ -130,7 +179,6 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
                     println("worked")
                 }
                 .addOnFailureListener {
-                    // Handle unsuccessful uploads
                     println("didn't work")
                 }
         }

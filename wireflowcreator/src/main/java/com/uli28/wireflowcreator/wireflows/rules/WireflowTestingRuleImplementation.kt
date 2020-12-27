@@ -39,12 +39,12 @@ class WireflowTestingRuleImplementation(
             } finally {
                 // Do something after the test.
                 val endTime = System.currentTimeMillis()
-                println("${description.methodName} took ${endTime - startTime} ms)")
+                println("${description.methodName} took ${endTime - startTime} ms")
                 idlingResource?.let {
                     IdlingRegistry.getInstance().unregister(idlingResource)
                 }
-                return
             }
+            return
         }
 
         val testedRequirements = description
@@ -74,14 +74,15 @@ class WireflowTestingRuleImplementation(
             // Do something after the test.
             val endTime = System.currentTimeMillis()
             val passedMilliSeconds = endTime - startTime
-            println("${description.methodName} took $passedMilliSeconds ms)")
+            println("${description.methodName} took $passedMilliSeconds ms")
+            val passedSeconds = passedMilliSeconds / 1000.0
             val currentFlow =
                 wireflowInitialisationRule.flowPresentation?.flows!![description.methodName + "_" + currentMillis]
             if (thrownException != null) {
                 currentFlow?.testStatus =
-                    thrownException.message?.let { TestStatus(passedMilliSeconds, it) }
+                    thrownException.message?.let { TestStatus(passedSeconds, it) }
             } else {
-                currentFlow?.testStatus = TestStatus(passedMilliSeconds, null)
+                currentFlow?.testStatus = TestStatus(passedSeconds, null)
             }
             wireflowInitialisationRule.flowPresentation?.flows!![description.methodName + "_" + currentMillis] =
                 currentFlow!!
