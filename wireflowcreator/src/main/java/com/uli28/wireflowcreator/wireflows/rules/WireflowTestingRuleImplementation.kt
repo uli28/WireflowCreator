@@ -124,7 +124,9 @@ class WireflowTestingRuleImplementation(
             steps = mutableListOf()
         }
 
-        Espresso.onIdle() // https://stackoverflow.com/questions/33120493/espresso-idling-resource-doesnt-work
+        idlingResource?.let {
+            Espresso.onIdle() // https://stackoverflow.com/questions/33120493/espresso-idling-resource-doesnt-work
+        }
 
         steps.add(ScreenshotRecorder(true).createScreenshot())
         targetFlow.steps = steps
