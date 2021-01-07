@@ -25,6 +25,7 @@ class BuildConfigValueProvider {
         }
 
         fun setIsWireflowCreationEnabled(environmentPropertyIsEnabled: String?) {
+            cachedIsWireflowEnabledValue = null
             buildConfigEnvironmentVariable = environmentPropertyIsEnabled
         }
 
