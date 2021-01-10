@@ -6,7 +6,6 @@ import androidx.annotation.RequiresApi
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
-import com.google.gson.Gson
 import com.uli28.wireflowcreator.BuildConfig
 import com.uli28.wireflowcreator.wireflows.annotations.CreateFlowRepresentation
 import com.uli28.wireflowcreator.wireflows.config.BuildConfigValueProvider.Companion.getBuildConfigValue
@@ -60,20 +59,21 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
                 ?.name ?: ""
 
             // Do something before all tests.
-            initWireflow(name, description)
+            initWireflow(name)
             try {
                 // Execute the test.
                 statement.evaluate()
             } finally {
                 // Do something after the test.
                 val endTime = System.currentTimeMillis()
-                println("${description.displayName.substringAfterLast(".")} took ${endTime - startTime} ms")
-                writeToDb()
+                val className = description.displayName.substringAfterLast(".")
+                println("$className took ${endTime - startTime} ms")
+                writeToDb(className)
             }
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
-        private fun initWireflow(name: String, description: Description) {
+        private fun initWireflow(name: String) {
             if (packageName == null) {
                 packageName = context?.packageName
             }
@@ -97,63 +97,9 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
             return flavor + buildType
         }
 
-        private fun updateWireflowIfPresent(
-            database: DatabaseReference,
-            app: String,
-            formattedDate: String
-        ) {
-            val done = CountDownLatch(1)
-
-            val wireflowListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (dataSnapshot.childrenCount == 0L) {
-                        uploadFlows(database, app, formattedDate, done)
-                        return
-                    } else {
-                        val gson = Gson()
-                        val presentFlowPresentation = gson.fromJson(
-                            gson.toJson(dataSnapshot.value),
-                            FlowPresentation::class.java
-                        )
-                        val mapContainingAllFlows = presentFlowPresentation.flows
-                        flowPresentation?.flows?.let { mapContainingAllFlows?.putAll(it) }
-                        flowPresentation?.flows = mapContainingAllFlows
-
-                        uploadFlows(database, app, formattedDate, done)
-                        return
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    println("loadPost:onCancelled ${databaseError.toException()}")
-                }
-            }
-            database.child("wireflow").child(app).child(formattedDate)
-                .addListenerForSingleValueEvent(wireflowListener)
-            try {
-                done.await() // it will wait till the response is received from firebase.
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-        }
-
-
-        private fun uploadFlows(
-            database: DatabaseReference,
-            app: String,
-            formattedDate: String,
-            done: CountDownLatch
-        ) {
-            database.child("wireflow").child(app).child(formattedDate)
-                .setValue(flowPresentation) { error, ref ->
-                    //setValue operation is done, you'll get null in error and ref is the path reference for firebase database
-                    done.countDown()
-                }
-        }
-
         ///storage/emulated/0/Android/data/com.codingwithmitch.espressouitestexamples/files/Pictures
         @RequiresApi(Build.VERSION_CODES.O)
-        private fun writeToDb() {
+        private fun writeToDb(className: String) {
             // val gsonPretty = GsonBuilder().setPrettyPrinting().create()
             // val json: String = gsonPretty.toJson(flowPresentation)
             val instance = FirebaseDatabase.getInstance()
@@ -169,7 +115,28 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
             val idFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS")
             val formattedDate = buildDate.format(idFormatter)
             flowPresentation?.application?.let {
-                updateWireflowIfPresent(database, it, formattedDate)
+                uploadFlows(database, it, formattedDate, className)
+            }
+        }
+
+        private fun uploadFlows(
+            database: DatabaseReference,
+            app: String,
+            formattedDate: String,
+            className: String
+        ) {
+            val done = CountDownLatch(1)
+
+            database.child("wireflow").child(app).child(formattedDate).child(className)
+                .setValue(flowPresentation) { error, ref ->
+                    //setValue operation is done, you'll get null in error and ref is the path reference for firebase database
+                    done.countDown()
+                }
+
+            try {
+                done.await() // it will wait till the response is received from firebase.
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
             }
         }
 
