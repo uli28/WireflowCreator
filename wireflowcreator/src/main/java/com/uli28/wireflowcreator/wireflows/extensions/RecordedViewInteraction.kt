@@ -80,7 +80,7 @@ class RecordedViewInteraction(
     }
 
     private fun createStep(): ImageType {
-        return ScreenshotRecorder(false).createScreenshot()
+        return ScreenshotRecorder(wireflowInitialisationRule.flowPresentation!!.buildDate, false).createScreenshot()
     }
 
 

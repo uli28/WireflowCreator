@@ -126,7 +126,7 @@ class WireflowTestingRuleImplementation(
 
         Espresso.onIdle() // https://stackoverflow.com/questions/33120493/espresso-idling-resource-doesnt-work
 
-        steps.add(ScreenshotRecorder(true).createScreenshot())
+        steps.add(ScreenshotRecorder(wireflowInitialisationRule.flowPresentation!!.buildDate, true).createScreenshot())
         targetFlow.steps = steps
     }
 

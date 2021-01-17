@@ -1,6 +1,5 @@
 package com.uli28.wireflowcreator.wireflows.extensions
 
-import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Environment.DIRECTORY_PICTURES
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
@@ -29,7 +28,7 @@ class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
     }
 }
 
-class ScreenshotRecorder(private val initialScreenshot: Boolean) {
+class ScreenshotRecorder(private val buildDate:String, private val initialScreenshot: Boolean) {
     fun createScreenshot(): ImageType {
         val imageType = ImageType()
         val filename = System.currentTimeMillis().toString()
@@ -43,7 +42,7 @@ class ScreenshotRecorder(private val initialScreenshot: Boolean) {
         imageType.width = capture.bitmap.width
         imageType.height = capture.bitmap.height
         imageType.filename =
-            capture.name + "." + capture.format
+            buildDate + "/" + capture.name + "." + capture.format
 
 //        val processors = HashSet<ScreenCaptureProcessor>()
 //        processors.add(IDTScreenCaptureProcessor())
@@ -60,7 +59,7 @@ class ScreenshotRecorder(private val initialScreenshot: Boolean) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 26, baos)
             uploadImage(
                 baos.toByteArray(),
-                capture.name + "." + capture.format
+                imageType.filename
             )
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
