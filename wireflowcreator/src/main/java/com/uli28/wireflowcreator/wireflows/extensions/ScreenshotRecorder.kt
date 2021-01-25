@@ -1,17 +1,22 @@
 package com.uli28.wireflowcreator.wireflows.extensions
 
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Environment.DIRECTORY_PICTURES
+import androidx.annotation.RequiresApi
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.runner.screenshot.BasicScreenCaptureProcessor
 import androidx.test.runner.screenshot.Screenshot
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
+import com.uli28.wireflowcreator.wireflows.config.ConfigParameter
 import com.uli28.wireflowcreator.wireflows.entities.ImageType
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileNotFoundException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 // https://stackoverflow.com/questions/38519568/how-to-take-screenshot-at-the-point-where-test-fail-in-espresso
 class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
@@ -29,6 +34,7 @@ class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
 }
 
 class ScreenshotRecorder(private val buildDate:String, private val initialScreenshot: Boolean) {
+    @RequiresApi(Build.VERSION_CODES.O)
     fun createScreenshot(): ImageType {
         val imageType = ImageType()
         val filename = System.currentTimeMillis().toString()
@@ -41,8 +47,12 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
 
         imageType.width = capture.bitmap.width
         imageType.height = capture.bitmap.height
+        val formatter = DateTimeFormatter.ofPattern(ConfigParameter.DEFAULT_DATETIME_FORMAT)
+        val buildDate = LocalDateTime.parse(buildDate, formatter)
+        val idFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS")
+        val formattedDate = buildDate.format(idFormatter)
         imageType.filename =
-            buildDate + "/" + capture.name + "." + capture.format
+            formattedDate + "/" + capture.name + "." + capture.format
 
 //        val processors = HashSet<ScreenCaptureProcessor>()
 //        processors.add(IDTScreenCaptureProcessor())
