@@ -66,7 +66,7 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
         try {
             val bitmap = capture.bitmap
             val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 26, baos)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 10, baos)
             uploadImage(
                 baos.toByteArray(),
                 imageType.filename
