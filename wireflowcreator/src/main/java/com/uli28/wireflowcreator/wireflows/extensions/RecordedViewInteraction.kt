@@ -1,6 +1,8 @@
 package com.uli28.wireflowcreator.wireflows.extensions
 
+import android.os.Build
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewAssertion
 import androidx.test.espresso.ViewInteraction
@@ -14,6 +16,7 @@ class RecordedViewInteraction(
     private var description: Description?,
     private var viewInteraction: ViewInteraction
 ) {
+    @RequiresApi(Build.VERSION_CODES.O)
     fun perform(vararg viewActions: ViewAction): RecordedViewInteraction {
 
         if (isWireflowCreationEnabled()) {
@@ -43,6 +46,7 @@ class RecordedViewInteraction(
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun recordImage(
         flowPresentation: FlowPresentation?,
         description: Description?
@@ -58,6 +62,7 @@ class RecordedViewInteraction(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateTargetFlow(
         filteredFlow: Map<String, Wireflow>
     ): Pair<String, Wireflow>? {
@@ -79,6 +84,7 @@ class RecordedViewInteraction(
         return null
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createStep(): ImageType {
         return ScreenshotRecorder(wireflowInitialisationRule.flowPresentation!!.buildDate, false).createScreenshot()
     }

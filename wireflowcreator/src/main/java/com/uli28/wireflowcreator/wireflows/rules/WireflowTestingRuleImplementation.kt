@@ -118,6 +118,7 @@ class WireflowTestingRuleImplementation(
         return flows
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun addInitialScreenshot(targetFlow: Wireflow) {
         var steps = targetFlow.steps
         if (steps == null) {

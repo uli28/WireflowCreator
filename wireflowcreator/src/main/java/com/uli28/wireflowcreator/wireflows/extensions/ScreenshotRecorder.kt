@@ -1,6 +1,7 @@
 package com.uli28.wireflowcreator.wireflows.extensions
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Environment.DIRECTORY_PICTURES
 import androidx.annotation.RequiresApi
@@ -17,6 +18,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
 
 // https://stackoverflow.com/questions/38519568/how-to-take-screenshot-at-the-point-where-test-fail-in-espresso
 class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
@@ -66,9 +68,18 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
         try {
             val bitmap = capture.bitmap
             val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 10, baos)
+            val options = BitmapFactory.Options()
+            // https://stackoverflow.com/questions/47717299/compressing-a-jpg-image-to-a-given-size-in-kb
+            options.inSampleSize = 3 // If you want an image four times smaller than the original
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 98, baos)
+            val decoded =
+                BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.toByteArray().size, options)
+
+            val compressedBaos = ByteArrayOutputStream()
+            decoded.compress(Bitmap.CompressFormat.JPEG, 80, compressedBaos)
             uploadImage(
-                baos.toByteArray(),
+                compressedBaos.toByteArray(),
                 imageType.filename
             )
         } catch (e: FileNotFoundException) {
