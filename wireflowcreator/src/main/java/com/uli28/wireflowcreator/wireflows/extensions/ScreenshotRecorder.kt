@@ -72,12 +72,12 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
             // https://stackoverflow.com/questions/47717299/compressing-a-jpg-image-to-a-given-size-in-kb
             options.inSampleSize = 3 // If you want an image four times smaller than the original
 
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 98, baos)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val decoded =
                 BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.toByteArray().size, options)
 
             val compressedBaos = ByteArrayOutputStream()
-            decoded.compress(Bitmap.CompressFormat.JPEG, 80, compressedBaos)
+            decoded.compress(Bitmap.CompressFormat.JPEG, 85, compressedBaos)
             uploadImage(
                 compressedBaos.toByteArray(),
                 imageType.filename
