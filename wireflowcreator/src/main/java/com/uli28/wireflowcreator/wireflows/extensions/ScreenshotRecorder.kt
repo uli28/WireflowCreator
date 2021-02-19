@@ -100,28 +100,24 @@ class ScreenshotRecorder(private val buildDate: String, private val initialScree
             signInAnonymously(mAuth)
         }
 
-        val done = CountDownLatch(1)
-
         val mountainsRef = storageRef.child(filename)
         val uploadTask = mountainsRef.putBytes(data)
+        ScreenshotCounter.notUploadedScreenshotCounter.incrementAndGet()
         uploadTask.addOnFailureListener {
             println("could not upload image, trying again")
 
             val retriedMountainsRef = storageRef.child(filename)
             val retriedUploadTask = retriedMountainsRef.putBytes(data)
 
-            retriedUploadTask.addOnSuccessListener { done.countDown() }
+            retriedUploadTask.addOnSuccessListener {
+                ScreenshotCounter.notUploadedScreenshotCounter.decrementAndGet()
+            }
                 .addOnFailureListener {
                     println("image could not be uploaded")
-                    done.countDown()
+                    ScreenshotCounter.notUploadedScreenshotCounter.decrementAndGet()
                 }
         }.addOnSuccessListener {
-            done.countDown()
-        }
-        try {
-            done.await() // it will wait till the response is received from firebase.
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
+            ScreenshotCounter.notUploadedScreenshotCounter.decrementAndGet()
         }
     }
 

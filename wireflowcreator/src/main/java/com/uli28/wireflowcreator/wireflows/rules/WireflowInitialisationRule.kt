@@ -18,6 +18,7 @@ import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.DEFA
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.ENABLE_WIREFLOW_CREATION
 import com.uli28.wireflowcreator.wireflows.config.ConfigParameter.Companion.FLAVOR
 import com.uli28.wireflowcreator.wireflows.entities.FlowPresentation
+import com.uli28.wireflowcreator.wireflows.extensions.ScreenshotCounter
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -137,6 +138,10 @@ class WireflowInitialisationRule(var context: Context?, var packageName: String?
                 done.await() // it will wait till the response is received from firebase.
             } catch (e: InterruptedException) {
                 e.printStackTrace()
+            }
+
+            while (ScreenshotCounter.notUploadedScreenshotCounter.get() != 0) {
+                Thread.sleep(5)
             }
         }
 
