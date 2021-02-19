@@ -18,6 +18,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.CountDownLatch
 
 
 // https://stackoverflow.com/questions/38519568/how-to-take-screenshot-at-the-point-where-test-fail-in-espresso
@@ -35,7 +36,7 @@ class IDTScreenCaptureProcessor : BasicScreenCaptureProcessor() {
     }
 }
 
-class ScreenshotRecorder(private val buildDate:String, private val initialScreenshot: Boolean) {
+class ScreenshotRecorder(private val buildDate: String, private val initialScreenshot: Boolean) {
     @RequiresApi(Build.VERSION_CODES.O)
     fun createScreenshot(): ImageType {
         val imageType = ImageType()
@@ -56,15 +57,6 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
         imageType.filename =
             formattedDate + "/" + capture.name + "." + capture.format
 
-//        val processors = HashSet<ScreenCaptureProcessor>()
-//        processors.add(IDTScreenCaptureProcessor())
-//
-//        try {
-//            capture.process(processors)
-//        } catch (ioException: IOException) {
-//            ioException.printStackTrace()
-//        }
-
         try {
             val bitmap = capture.bitmap
             val baos = ByteArrayOutputStream()
@@ -74,7 +66,12 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
 
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val decoded =
-                BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.toByteArray().size, options)
+                BitmapFactory.decodeByteArray(
+                    baos.toByteArray(),
+                    0,
+                    baos.toByteArray().size,
+                    options
+                )
 
             val compressedBaos = ByteArrayOutputStream()
             decoded.compress(Bitmap.CompressFormat.JPEG, 85, compressedBaos)
@@ -103,13 +100,28 @@ class ScreenshotRecorder(private val buildDate:String, private val initialScreen
             signInAnonymously(mAuth)
         }
 
+        val done = CountDownLatch(1)
+
         val mountainsRef = storageRef.child(filename)
         val uploadTask = mountainsRef.putBytes(data)
         uploadTask.addOnFailureListener {
-            // Handle unsuccessful uploads
-        }.addOnSuccessListener { taskSnapshot ->
-            // taskSnapshot.metadata contains file metadata such as size, content-type, etc.
-            // ...
+            println("could not upload image, trying again")
+
+            val retriedMountainsRef = storageRef.child(filename)
+            val retriedUploadTask = retriedMountainsRef.putBytes(data)
+
+            retriedUploadTask.addOnSuccessListener { done.countDown() }
+                .addOnFailureListener {
+                    println("image could not be uploaded")
+                    done.countDown()
+                }
+        }.addOnSuccessListener {
+            done.countDown()
+        }
+        try {
+            done.await() // it will wait till the response is received from firebase.
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
         }
     }
 
