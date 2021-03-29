@@ -79,6 +79,8 @@ class ScreenshotRecorder(private val buildDate: String, private val initialScree
                 compressedBaos.toByteArray(),
                 imageType.filename
             )
+            baos.close()
+            compressedBaos.close()
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         }
